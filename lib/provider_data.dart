@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 
 class Data with ChangeNotifier {
 
-  String myCategory='Business news';
+  String myCategory='BusinessNews';
 
   void changeStringMethod(String newString) {
     myCategory = newString;
     notifyListeners();
 
   }
-
 }
 

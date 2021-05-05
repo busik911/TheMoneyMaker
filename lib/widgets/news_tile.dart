@@ -8,11 +8,12 @@ class NewsTile extends StatefulWidget {
   NewsTile(
       {@required this.newsTileTitle,
       @required this.newsTileImage,
-      @required this.newsTileDesc});
+      @required this.newsTileDesc,@required this.author});
 
   final String newsTileImage;
   final String newsTileTitle;
   final String newsTileDesc;
+  final String author;
 
 
   @override
@@ -52,6 +53,7 @@ class _NewsTileState extends State<NewsTile>
                       articleDescription: widget.newsTileDesc,
                       articleTitle: widget.newsTileTitle,
                       imageUrl: widget.newsTileImage,
+                      author: widget.author,
                     )));
       },
       child: Transform.scale(

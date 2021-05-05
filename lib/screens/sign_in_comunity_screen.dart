@@ -10,6 +10,14 @@ import 'package:myluxurynewspaper/screens/community_screen.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 
 
+final GoogleSignIn _googleSignIn = GoogleSignIn(
+  scopes: [
+    'email'
+  ],
+);
+var facebookLogin=new FacebookLogin();
+
+
 class ComunityScreen extends StatefulWidget {
 
   @override
@@ -20,6 +28,9 @@ class _ComunityScreenState extends State<ComunityScreen> {
 
   final emailTextController = TextEditingController();
   final passwordTextController = TextEditingController();
+
+
+
   @override
   void dispose() {
     emailTextController.dispose();
@@ -57,57 +68,12 @@ class _ComunityScreenState extends State<ComunityScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-//                  TextFormField(
-//                    validator: (input){
-//                      if(input.isEmpty){
-//
-//                      }
-//                      return 'Please type in a valid email';
-//                    },
-//                    decoration: InputDecoration(
-//                      hintText:'Enter your email',
-//                      hintStyle: TextStyle(color: Colors.white),
-//
-//                    ),
-//                    controller: emailTextController,
-//                    cursorColor: Colors.white,
-//                    textAlign: TextAlign.center,
-//                    style: TextStyle(color: Colors.white),
-//                  ),
                   SizedBox(
                     height: 20.0,
                   ),
-//                  TextFormField(
-//                    validator: (input){
-//                      if(input.isEmpty){
-//                      }
-//                      return 'Wrong password';
-//                    },
-//                    decoration:InputDecoration(
-//                      hintText: 'Password',hintStyle: TextStyle(color: Colors.white),
-//                    ),
-//                    controller: passwordTextController,
-//                    obscureText: true,
-//                    textAlign: TextAlign.center,
-//                    cursorColor: Colors.white,
-//                    style: TextStyle(color: Colors.white),
-//                  ),
                   SizedBox(
                     height: 20.0,
                   ),
-
-//                  SignInContainer(
-//                    authButton: SignInButton(
-//                      onPressed: (){
-//                        signInWithMail();
-//                      },color: Colors.green,
-//                      icon: Icon(
-//                        Icons.email,
-//                        color: Colors.white,
-//                      ),
-//                      text: 'Sign in with Email',
-//                    ),
-//                  ),
                   SizedBox(
                     height: 10.0,
                   ),
@@ -148,19 +114,6 @@ class _ComunityScreenState extends State<ComunityScreen> {
                   SizedBox(
                     height: 10.0,
                   ),
-//                  SignInContainer(
-//                    authButton: SignInButton(
-//                      onPressed: (){
-//                        signUpWithMail();
-//                      },
-//                      color: Colors.grey,
-//                      icon: Icon(
-//                        FontAwesomeIcons.mailBulk,
-//                        color: Colors.white,
-//                      ),
-//                      text: 'Register',
-//                    ),
-//                  ),
                 ],
               ),
             ),
@@ -172,11 +125,7 @@ class _ComunityScreenState extends State<ComunityScreen> {
 
   Future<void> _googleSignUp(BuildContext context) async {
     try {
-      final GoogleSignIn _googleSignIn = GoogleSignIn(
-        scopes: [
-          'email'
-        ],
-      );
+
       final FirebaseAuth _auth = FirebaseAuth.instance;
 
       final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
@@ -189,7 +138,7 @@ class _ComunityScreenState extends State<ComunityScreen> {
 
       final FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
 
-      UserDetails userDetails=UserDetails(name:user.displayName, image: user.photoUrl);
+      UserDetails userDetails=UserDetails(name:user.displayName, image: user.photoUrl,idToken: user.uid);
       if(user!=null){
         Navigator.push(context, new MaterialPageRoute(builder: (context)=> new CommunityForum(detailsUser:userDetails),
         ),);
@@ -198,18 +147,22 @@ class _ComunityScreenState extends State<ComunityScreen> {
     }catch (e) {
       print(e.message);
     }
+
+
   }
   Future<void>singInWithFacebook()async{
     try{
-      var facebookLogin=new FacebookLogin();
+
       var result=await facebookLogin.logIn(['email']);
       if(result.status==FacebookLoginStatus.loggedIn){
         print('User logged in');
         final AuthCredential credential=FacebookAuthProvider.getCredential(
           accessToken: result.accessToken.token,
         );
+
         final FirebaseUser user=(await FirebaseAuth.instance.signInWithCredential(credential)).user;
-        UserDetails userDetails=UserDetails(name:user.displayName, image: user.photoUrl);
+
+        UserDetails userDetails=UserDetails(name:user.displayName, image: user.photoUrl,idToken: result.accessToken.userId);
         if(user!=null){
           Navigator.push(context, new MaterialPageRoute(builder: (context)=> new CommunityForum(detailsUser:userDetails),
           ),);
@@ -221,124 +174,6 @@ class _ComunityScreenState extends State<ComunityScreen> {
       print(e);
     }
   }
-//
-//  Future<void> signInWithAppleId()async{
-//    try{
-//
-//         final AuthorizationResult result =await AppleSignIn.performRequests([
-//           AppleIdRequest(requestedScopes: [Scope.email,Scope.fullName])
-//         ]);
-//
-//         switch(result.status){
-//           case AuthorizationStatus.authorized:
-//             final AppleIdCredential _auth=result.credential;
-//             final OAuthProvider oAuthProvider=OAuthProvider(providerId:'apple.com' );
-//             final AuthCredential credential=oAuthProvider.getCredential(
-//                 idToken: String.fromCharCodes(_auth.identityToken),
-//                 accessToken: String.fromCharCodes(_auth.authorizationCode));
-//             await FirebaseAuth.instance.signInWithCredential(credential);
-//             if(_auth.fullName!=null){
-//               FirebaseAuth.instance.currentUser().then((value) async{
-//                 UserUpdateInfo user =UserUpdateInfo();
-//                 user.displayName='${_auth.fullName.givenName}${_auth.fullName.familyName}';
-//                 await value.updateProfile(user);
-//                 UserDetails userDetails=UserDetails(name:user.displayName, image: user.photoUrl);
-//                 if(user!=null){
-//                   Navigator.push(context, new MaterialPageRoute(builder: (context)=> new CommunityForum(detailsUser:userDetails),
-//                   ),);
-//                 }
-//               });
-//             }
-//
-//             break;
-//           case AuthorizationStatus.error:
-//             print('Sing In Failed ${result.error.localizedDescription}');
-//             break;
-//           case AuthorizationStatus.cancelled:
-//             print('user cancelled');
-//             break;
-//         }
-//
-//
-//
-////      return user;
-//    }catch(e){
-//      print(e);
-//    }
-//  }
-
-//  Future<void> signInWithMail() async {
-//    AuthResult user;
-//    try {
-//     user= await FirebaseAuth.instance.signInWithEmailAndPassword(
-//          email: emailTextController.text.trim(),
-//          password: passwordTextController.text.trim()
-//      );
-//      showDialog(
-//          context: context,
-//          builder: (context) {
-//            return AlertDialog(
-//              content: Text('Success sign in'),
-//            );
-//          }
-//      );
-//    }catch(e) {
-//      print(e.message);
-//      showDialog(
-//          context: context,
-//          builder: (context) {
-//            return AlertDialog(
-//              content: Text('Please enter a valid email or password'),
-//            );
-//          }
-//      );
-//    }
-//    UserDetails detailsUser=new UserDetails(name:emailTextController.text.trim());
-//    if(user!=null){
-//      Navigator.push(context, MaterialPageRoute(builder: (context)=>new CommunityForum(detailsUser:detailsUser)));
-//    }else{
-//      print('please insert credentials');
-//    }
-//
-//
-//  }
-//
-//  Future<void> signUpWithMail() async {
-//    AuthResult user;
-//    try {
-//      user= await FirebaseAuth.instance.createUserWithEmailAndPassword(
-//          email: emailTextController.text.trim(),
-//          password: passwordTextController.text.trim()
-//      );
-//      showDialog(
-//          context: context,
-//          builder: (context) {
-//            return AlertDialog(
-//              content: Text('Success sign in'),
-//            );
-//          }
-//      );
-//    }catch(e) {
-//      print(e.message);
-//      showDialog(
-//          context: context,
-//          builder: (context) {
-//            return AlertDialog(
-//              content: Text('Please enter a valid email or password'),
-//            );
-//          }
-//      );
-//    }
-//    UserDetails detailsUser=new UserDetails(name:emailTextController.text.trim());
-//    if(user!=null){
-//      Navigator.push(context, MaterialPageRoute(builder: (context)=>new CommunityForum(detailsUser:detailsUser)));
-//    }else{
-//      print('please insert credentials');
-//    }
-//
-//
-//  }
-
 }
 
 class SignInContainer extends StatelessWidget {
@@ -394,4 +229,13 @@ class SignInButton extends StatelessWidget {
       ),
     );
   }
+}
+void signOutGoogle() async{
+  await _googleSignIn.signOut();
+  print('google log out');
+
+}
+void facebookLogOut()async{
+  await facebookLogin.logOut();
+  print('facebook log out');
 }

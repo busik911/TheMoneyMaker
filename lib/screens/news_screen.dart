@@ -25,59 +25,54 @@ class NewsScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage('images/community.jpg'), fit: BoxFit.cover),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              /// Categories
-              Container(
-                padding: EdgeInsets.only(left: 16.0,right: 16.0,top: 10.0),
-                height: 70,
-                child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: getCategories().length,
-                    itemBuilder: (context, index) {
-                      return CategoryCard(
-                        imageAssetUrl:
-                            getCategories()[index].imageAssetUrl,
-                        categoryName: getCategories()[index].categoryName,
-                      );
-                    }),
-              ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            /// Categories
+            Container(
+              padding: EdgeInsets.only(left: 16.0,right: 16.0,top: 10.0),
+              height: 70,
+              child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: getCategories().length,
+                  itemBuilder: (context, index) {
+                    return CategoryCard(
+                      imageAssetUrl:
+                          getCategories()[index].imageAssetUrl,
+                      categoryName: getCategories()[index].categoryName,
+                    );
+                  }),
+            ),
 
-              /// News Article
-              StreamBuilder<QuerySnapshot>(
-                stream: Firestore.instance.collection('${Provider.of<Data>(context).myCategory}').orderBy("ArticleNumber",descending: true).snapshots(),
-                builder: (BuildContext context,AsyncSnapshot<QuerySnapshot> snapshot){
-                  if (snapshot.hasError)
-                    return new Text('Error: ${snapshot.error}');
-                   switch (snapshot.connectionState) {
-                     case ConnectionState.waiting: return new Text('Loading...');
-                     default:
-                       return Container(
-                         height: MediaQuery.of(context).size.height,
-                         margin: EdgeInsets.only(top: 10.0,right: 10.0),
-                         child: new ListView.builder(
-                             scrollDirection: Axis.vertical,
-                            itemCount: snapshot.data.documents.length,
-                             itemBuilder: (context, index) {
-                               DocumentSnapshot category=snapshot.data.documents[index];
-                               return NewsTile(
-                                 newsTileImage: '${category['Image']}',
-                                 newsTileTitle: '${category['Title']}',
-                                 newsTileDesc: '${category['Description']}',
-                               );
-                             }),
-                       );
-                   }
-              }
-              ),
-            ],
-          ),
+            /// News Article
+            StreamBuilder<QuerySnapshot>(
+              stream: Firestore.instance.collection('${Provider.of<Data>(context).myCategory}').orderBy("ArticleNumber",descending: true).snapshots(),
+              builder: (BuildContext context,AsyncSnapshot<QuerySnapshot> snapshot){
+                if (snapshot.hasError)
+                  return new Text('Error: ${snapshot.error}');
+                 switch (snapshot.connectionState) {
+                   case ConnectionState.waiting: return new Text('Loading...');
+                   default:
+                     return Container(
+                       height: MediaQuery.of(context).size.height,
+                       margin: EdgeInsets.only(top: 10.0,right: 10.0),
+                       child: new ListView.builder(
+                           scrollDirection: Axis.vertical,
+                          itemCount: snapshot.data.documents.length,
+                           itemBuilder: (context, index) {
+                             DocumentSnapshot category=snapshot.data.documents[index];
+                             return NewsTile(
+                               newsTileImage: '${category['Image']}',
+                               newsTileTitle: '${category['Title']}',
+                               newsTileDesc: '${category['Description']}',
+                               author: '${category['Author']}',
+                             );
+                           }),
+                     );
+                 }
+            }
+            ),
+          ],
         ),
       ),
     );

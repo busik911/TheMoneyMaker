@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class FirstPageReusableCard extends StatefulWidget {
   FirstPageReusableCard({@required this.categoryText,@required this.imageName,this.onTap});
-  final String imageName;
+  final  imageName;
   final String categoryText;
   final VoidCallback onTap;
 
@@ -47,7 +47,7 @@ class _FirstPageReusableCardState extends State<FirstPageReusableCard> with Sing
                     blurRadius: 30.0),
               ],
               image: DecorationImage(
-                image: AssetImage('images/${widget.imageName}'),
+                image: widget.imageName.image,
                 fit: BoxFit.cover,
               )),
           child: Text(

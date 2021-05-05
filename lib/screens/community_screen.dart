@@ -1,18 +1,18 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:myluxurynewspaper/constructors/user_details.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myluxurynewspaper/screens/messages_screen.dart';
+import 'package:myluxurynewspaper/screens/sign_in_comunity_screen.dart';
 
 
 class CommunityForum extends StatefulWidget {
   final UserDetails detailsUser;
-  CommunityForum({Key key, @required this.detailsUser}) : super(key: key);
+
+  CommunityForum({Key key, @required this.detailsUser,}) : super(key: key);
 
   @override
   _CommunityForumState createState() => _CommunityForumState();
@@ -21,7 +21,7 @@ class CommunityForum extends StatefulWidget {
 class _CommunityForumState extends State<CommunityForum>
     with TickerProviderStateMixin {
   AnimationController _hideFabAnimation;
-  final GoogleSignIn _googleSignIn=GoogleSignIn();
+
   @override
   initState() {
     super.initState();
@@ -34,6 +34,9 @@ class _CommunityForumState extends State<CommunityForum>
     _hideFabAnimation.dispose();
     super.dispose();
   }
+
+
+
 
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification.depth == 0) {
@@ -104,7 +107,8 @@ class _CommunityForumState extends State<CommunityForum>
                   color: Colors.deepPurple,
                 ),
                 onPressed: () {
-                  _googleSignIn.signOut();
+                  signOutGoogle();
+                  facebookLogOut();
                   Navigator.pop(context);
                 }),
           ],
@@ -171,6 +175,7 @@ class _CommunityForumState extends State<CommunityForum>
                                   views: topic['views'],
                                   document: topic,
                                   userName: widget.detailsUser.name,
+                                  idToken: widget.detailsUser.idToken,
                                 );
                               });
                       }
@@ -260,12 +265,13 @@ class TopicTile extends StatefulWidget {
   final int messagesReplays;
   final DocumentSnapshot document;
   final String userName;
+  final String idToken;
   TopicTile(
       {this.messagesReplays,
       this.topicTitle,
       this.views,
       this.document,
-      this.userName});
+      this.userName,this.idToken});
 
   @override
   _TopicTileState createState() => _TopicTileState();
@@ -308,9 +314,12 @@ class _TopicTileState extends State<TopicTile>
                     documentID: documentID,
                     title: title,
                     userName: widget.userName,
-                documentSnapshot: widget.document,
+                    documentSnapshot: widget.document,
+                idToken: widget.idToken,
                   )),
+
         );
+
       },
       onTapUp: onTapUp,
       onTapDown: onTapDown,

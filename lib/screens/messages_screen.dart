@@ -4,17 +4,25 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myluxurynewspaper/screens/messagesReplay_screen.dart';
+import 'package:myluxurynewspaper/screens/sign_in_comunity_screen.dart';
 
-class MessagesScreen extends StatelessWidget {
+class MessagesScreen extends StatefulWidget {
   final String documentID;
   final String title;
   final String userName;
   final DocumentSnapshot documentSnapshot;
+  final String idToken;
   MessagesScreen(
       {@required this.documentID,
       this.title,
       this.userName,
-      @required this.documentSnapshot});
+      this.documentSnapshot,this.idToken});
+
+  @override
+  _MessagesScreenState createState() => _MessagesScreenState();
+}
+
+class _MessagesScreenState extends State<MessagesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,6 +40,22 @@ class MessagesScreen extends StatelessWidget {
               fontSize: 30.0,
             )),
         centerTitle: true,
+        actions: <Widget>[
+          IconButton(
+              icon: Icon(
+                FontAwesomeIcons.signOutAlt,
+                size: 20.0,
+                color: Colors.deepPurple,
+              ),
+              onPressed: () {
+                signOutGoogle();
+                facebookLogOut();
+                Navigator.push(
+                    context,
+                    new MaterialPageRoute(
+                        builder: (context) => new ComunityScreen()));
+              }),
+        ],
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -44,7 +68,7 @@ class MessagesScreen extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              title,
+              widget.title,
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white, fontSize: 30.0),
             ),
@@ -52,7 +76,7 @@ class MessagesScreen extends StatelessWidget {
               child: StreamBuilder(
                 stream: Firestore.instance
                     .collection('forumTopics')
-                    .document('$documentID')
+                    .document('${widget.documentID}')
                     .collection('forumComments')
                     .orderBy('commentNumber')
                     .snapshots(),
@@ -76,8 +100,10 @@ class MessagesScreen extends StatelessWidget {
                             return MessageBox(
                               comment: '${topic['comment']}',
                               document: topic,
-                              userName: this.userName,
-                              firstDocID: documentID,
+                              userName: this.widget.userName,
+                              firstDocID: widget.documentID,
+                              replaysNo: this.widget.documentSnapshot,
+                              idToken: widget.idToken,
                             );
                           });
                   }
@@ -130,25 +156,27 @@ class MessagesScreen extends StatelessWidget {
                         int queueOrder;
                         Firestore.instance
                             .collection('forumTopics')
-                            .document('$documentID')
+                            .document('${widget.documentID}')
                             .collection('forumComments')
                             .getDocuments()
                             .then((value) => {
                                   queueOrder = value.documents.length,
                                   Firestore.instance
                                       .collection('forumTopics')
-                                      .document('$documentID')
+                                      .document('${widget.documentID}')
                                       .collection('forumComments')
                                       .add({
                                     'comment': newComment,
                                     'commentNumber': queueOrder + 1,
                                     'like': 0,
                                     'dislike': 0,
-                                    'userName': this.userName
+                                    'userName': this.widget.userName,
+                                    'replaysNumber': 0,
+                                    'idToken':this.widget.idToken,
                                   }),
+                                  widget.documentSnapshot.reference
+                                      .updateData({'comments': queueOrder + 1}),
                                 });
-                        documentSnapshot.reference.updateData(
-                            {'comments': documentSnapshot['comments'] + 1});
                         Navigator.pop(context);
                       },
                       child: Text(
@@ -171,8 +199,15 @@ class MessageBox extends StatefulWidget {
   final String userName;
   final DocumentSnapshot document;
   final String firstDocID;
+  final DocumentSnapshot replaysNo;
+  final String idToken;
+
   MessageBox(
-      {@required this.comment, this.userName, this.document, this.firstDocID});
+      {@required this.comment,
+      this.userName,
+      this.document,
+      this.firstDocID,
+      this.replaysNo,this.idToken});
 
   @override
   _MessageBoxState createState() => _MessageBoxState();
@@ -181,7 +216,19 @@ class MessageBox extends StatefulWidget {
 class _MessageBoxState extends State<MessageBox> {
   bool dislike = false;
   bool like = false;
+  int checkLike = 0;
+  int checkDislike = 0;
+  DocumentSnapshot userLikeDislike;
+  int facebookAdmin= 4144842388889923;
+  String gMailAdmin='GJ5gkdtPPgcqOBDWSzgJqivRyNj2';
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    userLike();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -262,8 +309,8 @@ class _MessageBoxState extends State<MessageBox> {
                       style: TextStyle(color: Colors.black87, fontSize: 12.0),
                     ),
                     Visibility(
-                      visible: '${widget.document['userName']}' ==
-                              '${widget.userName}'
+                      visible: '${widget.document['idToken']}' ==
+                              '${widget.idToken}' || '${widget.idToken}' == facebookAdmin.toString() || '${widget.idToken}' == gMailAdmin
                           ? true
                           : false,
                       child: IconButton(
@@ -272,12 +319,26 @@ class _MessageBoxState extends State<MessageBox> {
                             color: Colors.black87,
                           ),
                           onPressed: () {
-                            Firestore.instance
-                                .collection('forumTopics')
-                                .document('${widget.firstDocID}')
-                                .collection('forumComments')
-                                .document('${widget.document.documentID}')
-                                .delete();
+                            int deleteMes;
+                            setState(() {
+                              Firestore.instance
+                                  .collection('forumTopics')
+                                  .document('${widget.firstDocID}')
+                                  .collection('forumComments')
+                                  .getDocuments()
+                                  .then((value) => {
+                                        deleteMes = value.documents.length,
+                                        Firestore.instance
+                                            .collection('forumTopics')
+                                            .document('${widget.firstDocID}')
+                                            .collection('forumComments')
+                                            .document(
+                                                '${widget.document.documentID}')
+                                            .delete(),
+                                        widget.replaysNo.reference.updateData(
+                                            {'comments': deleteMes - 1})
+                                      });
+                            });
                           }),
                     ),
                   ],
@@ -309,12 +370,29 @@ class _MessageBoxState extends State<MessageBox> {
                   ),
                   Column(
                     children: [
-                      IconButton(icon: Icon(Icons.reply),
-                          onPressed: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=>MessagesReplay(widget.firstDocID,widget.document.documentID,widget.userName)));
+                      IconButton(
+                          icon: Icon(Icons.reply),
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => MessagesReplay(
+                                        widget.firstDocID,
+                                        widget.document.documentID,
+                                        widget.userName,
+                                        widget.document,widget.idToken)));
                           }),
                     ],
-                  )
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10.0),
+                    child: Column(
+                      children: [
+                        Icon(FontAwesomeIcons.commentsDollar),
+                        Text('${widget.document['replaysNumber']}'),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -324,16 +402,69 @@ class _MessageBoxState extends State<MessageBox> {
     );
   }
 
+  void userLike() async {
+    try {
+      DocumentSnapshot userLikes = await Firestore.instance
+          .collection('forumTopics')
+          .document('${widget.firstDocID}')
+          .collection('forumComments')
+          .document('${widget.document.documentID}')
+          .collection('users')
+          .document('${widget.idToken}')
+          .get();
+      setState(() {
+        userLikeDislike = userLikes;
+        checkLike = userLikeDislike.data['like'];
+        checkDislike = userLikeDislike.data['dislike'];
+      });
+      if (checkLike == 0) {
+        like = false;
+      } else {
+        like = true;
+      }
+      if (checkDislike == 0) {
+        dislike = false;
+      } else {
+        dislike = true;
+      }
+    } catch (e) {}
+  }
+
   _onPressedDislike() {
     setState(() {
       dislike = !dislike;
     });
-    if (dislike == true) {
-      widget.document.reference
-          .updateData({'dislike': widget.document['dislike'] + 1});
-    } else {
+
+    Firestore.instance
+        .collection('forumTopics')
+        .document('${widget.firstDocID}')
+        .collection('forumComments')
+        .document('${widget.document.documentID}')
+        .collection('users')
+        .document('${widget.idToken}')
+        .setData({'like': 0, 'dislike': 1});
+
+    if (like == false && dislike == false) {
+      userLikeDislike.reference.updateData({'like': 0, 'dislike': 0});
       widget.document.reference
           .updateData({'dislike': widget.document['dislike'] - 1});
+    } else if (like == false && dislike == true) {
+      userLikeDislike.reference.updateData({'like': 0, 'dislike': 1});
+      widget.document.reference
+          .updateData({'dislike': widget.document['dislike'] + 1});
+    } else if (like == true && dislike == false) {
+      userLikeDislike.reference.updateData({'like': 0, 'dislike': 0});
+      widget.document.reference
+          .updateData({'dislike': widget.document['dislike'] - 1});
+    } else {
+      userLikeDislike.reference.updateData({'like': 0, 'dislike': 1});
+      widget.document.reference
+          .updateData({'dislike': widget.document['dislike'] + 1});
+      widget.document.reference
+          .updateData({'like': widget.document['like'] - 1});
+      setState(() {
+        like = false;
+      });
     }
   }
 
@@ -341,12 +472,42 @@ class _MessageBoxState extends State<MessageBox> {
     setState(() {
       like = !like;
     });
-    if (like == true) {
-      widget.document.reference
-          .updateData({'like': widget.document['like'] + 1});
-    } else {
+
+    Firestore.instance
+        .collection('forumTopics')
+        .document('${widget.firstDocID}')
+        .collection('forumComments')
+        .document('${widget.document.documentID}')
+        .collection('users')
+        .document('${widget.idToken}')
+        .setData({'like': 1, 'dislike': 0});
+
+    if (like == false && dislike == false) {
+      userLikeDislike.reference.updateData({'like': 0, 'dislike': 0});
       widget.document.reference
           .updateData({'like': widget.document['like'] - 1});
+    } else if (like == true && dislike == false) {
+      userLikeDislike.reference.updateData({'like': 1, 'dislike': 0});
+      widget.document.reference
+          .updateData({'like': widget.document['like'] + 1});
+    } else if (like == false && dislike == true) {
+      userLikeDislike.reference.updateData({'like': 0, 'dislike': 0});
+      widget.document.reference
+          .updateData({'like': widget.document['like'] - 1});
+    } else {
+      userLikeDislike.reference.updateData({'like': 1, 'dislike': 0});
+      widget.document.reference
+          .updateData({'like': widget.document['like'] + 1});
+      widget.document.reference
+          .updateData({'dislike': widget.document['dislike'] - 1});
+      setState(() {
+        dislike = false;
+      });
     }
   }
+}
+class Counter {
+  int value = 0;
+  void increment() => value++;
+  void decrement() => value--;
 }

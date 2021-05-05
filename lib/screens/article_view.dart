@@ -3,10 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 
 class ArticleView extends StatelessWidget {
-  ArticleView({@required this.imageUrl, @required this.articleTitle,@required this.articleDescription});
+  ArticleView({@required this.imageUrl, @required this.articleTitle,@required this.articleDescription,@required this.author});
  final String imageUrl;
  final String articleTitle;
  final String articleDescription;
+ final String author;
 
 
   @override
@@ -80,11 +81,20 @@ class ArticleView extends StatelessWidget {
                                 new SizedBox(
                                   height: 10.0,
                                 ),
-
+                               Padding(
+                                 padding: const EdgeInsets.only(right:20.0),
+                                 child: Row(
+                                   mainAxisAlignment: MainAxisAlignment.end,
+                                   children: [
+                                     Text('By Teodor Kadiyski',style: TextStyle(fontSize: 15.0,color: Colors.yellow),),
+                                   ],
+                                 ),
+                               ),
+                                SizedBox(height: 10.0,),
                                 new Text(
                                   this.articleDescription,
                                   style: TextStyle(fontSize: 17.0, color: Colors.white),
-                                )
+                                ),
                               ],
                             ),
                           ),

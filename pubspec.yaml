@@ -38,6 +38,10 @@ dependencies:
   flutter_facebook_login: ^3.0.0
   cached_network_image: ^2.2.0+1
   firebase_messaging: ^6.0.16
+  dcdg: ^2.0.1
+
+
+
 
 
 
@@ -66,6 +70,7 @@ flutter:
 
   assets:
     - images/
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:

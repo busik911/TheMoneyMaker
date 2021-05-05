@@ -40,6 +40,7 @@ MediaControl stopControl = MediaControl(
 final List<MediaItem> _queue = [];
 
 Future<List<MediaItem>> queue1() async {
+
   await Firestore.instance
       .collection("podcast")
       .orderBy("art", descending: true)
@@ -47,7 +48,6 @@ Future<List<MediaItem>> queue1() async {
       .then((value) {
     for (int i = 0; i < value.documents.length; i++) {
       var a = value.documents[i];
-      if(_queue.length<value.documents.length){
         _queue.add(MediaItem(
             title: '${a['title']}',
             id: '${a['id']}',
@@ -55,7 +55,6 @@ Future<List<MediaItem>> queue1() async {
             artist: '${a['artist']}',
             artUri: 'https://storage.googleapis.com/business_news/audioBook.jpeg',
             duration: a['duration']));
-      }
     }
   });
   return _queue;
@@ -68,6 +67,7 @@ class PodcastScreen extends StatefulWidget {
 
 class _PodcastScreenState extends State<PodcastScreen>
     with TickerProviderStateMixin {
+
   AnimationController paneController;
   AnimationController playPauseController;
   Animation<double> paneAnimation;
@@ -79,8 +79,8 @@ class _PodcastScreenState extends State<PodcastScreen>
   bool isAnimCompleted = false;
 
   void initState() {
-    queue1();
     super.initState();
+//      queue1();
     paneController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 500));
 
@@ -112,8 +112,11 @@ class _PodcastScreenState extends State<PodcastScreen>
   final BehaviorSubject<double> _dragPositionSubject =
       BehaviorSubject.seeded(null);
 
+
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
         backgroundColor: Colors.black87,
         appBar: AppBar(
@@ -639,7 +642,7 @@ class AudioPlayerTask extends BackgroundAudioTask {
   }
 
   Future<void> _skip(int offset) async {
-    await queue1();
+//    await queue1();
     final newPos = _queueIndex + offset;
     if (!(newPos >= 0 && newPos < _queue.length)) return;
     if (_playing == null) {
